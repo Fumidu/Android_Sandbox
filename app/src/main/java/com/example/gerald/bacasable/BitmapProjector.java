@@ -87,7 +87,6 @@ public class BitmapProjector {
             theta = phi - HALF_PI;
         }
 
-
         rho = -rho;
         cost = Math.cos(rho);
         cosr = Math.cos(theta);
@@ -100,7 +99,6 @@ public class BitmapProjector {
         double[] pOut = new double[2];
         for(int x = 0; x < destWidth; x++)
             for(int y = 0; y < destHeight; y++) {
-                //Log.d("PROJECTOR", String.format("x = %1d", x));
                 pIn[0] = (hfov * (-0.5 + (double)(x) / destWidth));
                 pIn[1] = (vfov * (-0.5 + (double)(y) / destHeight));
 

@@ -38,4 +38,13 @@
         android:id="@+id/buttonDessin"
         android:onClick="onClickButtonDessin"/>
 
+    <Button
+        android:text="Test GL"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/buttonDessin"
+        android:layout_alignParentStart="true"
+        android:id="@+id/buttonGl"
+        android:onClick="onClickButtonGl"/>
+
 </RelativeLayout>

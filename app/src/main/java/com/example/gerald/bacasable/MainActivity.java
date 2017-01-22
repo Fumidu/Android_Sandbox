@@ -74,6 +74,11 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    public void onClickButtonGl(View view) {
+        Intent intent = new Intent(this, TestGlActivity.class);
+        startActivity(intent);
+    }
+
     /**
      * A native method that is implemented by the 'native-lib' native library,
      * which is packaged with this application.

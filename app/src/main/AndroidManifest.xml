@@ -22,7 +22,8 @@
         <activity
             android:name=".TestDessinActivity"
             android:label="@string/title_activity_test_dessin"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity android:name=".TestGlActivity"></activity>
     </application>
 
 </manifest>
