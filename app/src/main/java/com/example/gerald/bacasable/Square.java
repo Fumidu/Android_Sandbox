@@ -36,17 +36,23 @@ public class Square {
     private ShortBuffer drawListBuffer;
 
     static final int COORDS_PER_VERTEX = 3;
-    private float squareCoords[] = {
+    static final float defaultSquareCoords[] = {
             -0.5f,  0.5f, 0.0f,   // top left
             -0.5f, -0.5f, 0.0f,   // bottom left
             0.5f, -0.5f, 0.0f,   // bottom right
             0.5f,  0.5f, 0.0f }; // top right
 
+    static final float defaultColor[] = { 0.1f, 0.3f, 0.7f, 1.0f };
+
+    private float squareCoords[];
+    private float mColor[];
     private short drawOrder[] = { 0, 1, 2, 0, 2, 3 }; // order to draw vertices
 
-    float color[] = { 0.1f, 0.3f, 0.7f, 1.0f };
+    public Square(float[] coords, float[] color)
+    {
+        squareCoords = coords;
+        mColor = color;
 
-    public Square() {
         ByteBuffer bb = ByteBuffer.allocateDirect(squareCoords.length * 4);
         bb.order(ByteOrder.nativeOrder());
 
@@ -70,10 +76,14 @@ public class Square {
         GLES20.glLinkProgram(mProgram);
     }
 
+    public Square() {
+        this(defaultSquareCoords, defaultColor);
+    }
+
     private int mPositionHandle;
     private int mColorHandle;
 
-    private final int vertexCount = squareCoords.length / COORDS_PER_VERTEX;
+    //private final int vertexCount = squareCoords.length / COORDS_PER_VERTEX;
     private final int vertexStride = COORDS_PER_VERTEX * 4;
 
     public void draw(float[] mvpMatrix) {
@@ -85,7 +95,7 @@ public class Square {
                 vertexStride, vertexBuffer);
 
         mColorHandle = GLES20.glGetUniformLocation(mProgram, "vColor");
-        GLES20.glUniform4fv(mColorHandle, 1, color, 0);
+        GLES20.glUniform4fv(mColorHandle, 1, mColor, 0);
 
         // get handle to shape's transformation matrix
         mMVPMatrixHandle = GLES20.glGetUniformLocation(mProgram, "uMVPMatrix");

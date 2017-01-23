@@ -5,6 +5,8 @@ import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 import android.os.SystemClock;
 
+import java.util.Vector;
+
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
@@ -15,7 +17,8 @@ import javax.microedition.khronos.opengles.GL10;
 public class MyGLRenderer implements GLSurfaceView.Renderer {
 
     private Triangle mTriangle;
-    private Square mSquare;
+    //private Square mSquare;
+    private Vector<Square> Squares = new Vector<Square>();
 
     // mMVPMatrix is an abbreviation for "Model View Projection Matrix"
     private final float[] mMVPMatrix = new float[16];
@@ -30,7 +33,64 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         //GLES20.glDepthFunc(GLES20.GL_LEQUAL);
         //GLES20.glDepthMask( true );
 
-        mSquare = new Square();
+        float size = 3f;
+        //Squares.add(new Square());
+        // -Y
+        Squares.add(new Square(
+                new float[] {
+                        -size, -size,  size,   // top left
+                        -size, -size, -size,   // bottom left
+                        size, -size, -size,    // bottom right
+                        size, -size,  size,    // top right
+                } ,
+                new float[] {1f, 0f, 0f, 1.0f})); // red
+        // +Y
+        Squares.add(new Square(
+                new float[] {
+                        -size, size,  size,   // top left
+                        -size, size, -size,   // bottom left
+                        size, size, -size,    // bottom right
+                        size, size,  size,    // top right
+                } ,
+                new float[] {0f, 1f, 0f, 1.0f})); // green
+        // -Z
+        Squares.add(new Square(
+                new float[] {
+                        -size, size, -size,  // top left
+                        -size, -size, -size,   // bottom left
+                        size, -size, -size,   // bottom right
+                        size, size, -size,   // top right
+                } ,
+                new float[] {0f, 0f, 1f, 1.0f})); // blue
+        // +Z
+        Squares.add(new Square(
+                new float[] {
+                        -size, size, size,  // top left
+                        -size, -size, size,   // bottom left
+                        size, -size, size,   // bottom right
+                        size, size, size,   // top right
+                } ,
+                new float[] {1f, 1f, 0f, 1.0f})); // yellow
+        // -X
+        Squares.add(new Square(
+                new float[] {
+                        -size, -size, size,   // top left
+                        -size, -size, -size,  // bottom left
+                        -size, size, -size,   // bottom right
+                        -size, size, size,    // top right
+                } ,
+                new float[] {1f, 0f, 1f, 1.0f})); // magenta
+        // +X
+        Squares.add(new Square(
+                new float[] {
+                        size, -size, size,   // top left
+                        size, -size, -size,  // bottom left
+                        size, size, -size,   // bottom right
+                        size, size, size,    // top right
+                } ,
+                new float[] {0f, 1f, 1f, 1.0f})); // cyan
+
+
         mTriangle = new Triangle();
     }
 
@@ -59,7 +119,8 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         GLES20.glClearDepthf(1.0f);
 
         // Set the camera position (View matrix)
-        Matrix.setLookAtM(mViewMatrix, 0, 0, 0, -3, 0f, 0f, 0f, 0f, 1.0f, 0.0f);
+        //Matrix.setLookAtM(mViewMatrix, 0, 0, 0, -3, 0f, 0f, 0f, 0f, 1.0f, 0.0f);
+        Matrix.setLookAtM(mViewMatrix, 0, 0, 0, 0, 0f, 0f, 1f, 0f, 1.0f, 0.0f);
 
         // Calculate the projection and view transformation
         Matrix.multiplyMM(mMVPMatrix, 0, mProjectionMatrix, 0, mViewMatrix, 0);
@@ -80,8 +141,11 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         Matrix.setRotateM(mRotationMatrix, 0, mAngleX, 0, -1.0f, 0);
         Matrix.multiplyMM(mMVPMatrix, 0, scratch, 0, mRotationMatrix, 0);
 
-        mSquare.draw(mMVPMatrix);
-        mTriangle.draw(mMVPMatrix);
+        for(Square s : Squares) {
+            s.draw(mMVPMatrix);
+        }
+        //mSquare.draw(mMVPMatrix);
+        //mTriangle.draw(mMVPMatrix);
     }
 
     public static int loadShader(int type, String shaderCode){
