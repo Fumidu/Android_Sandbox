@@ -1,5 +1,6 @@
 package com.example.gerald.bacasable;
 
+import android.content.Context;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
@@ -18,12 +19,18 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
 
     private Triangle mTriangle;
     //private Square mSquare;
+    private Sprite mSprite;
     private Vector<Square> Squares = new Vector<Square>();
+    private Context context;
 
     // mMVPMatrix is an abbreviation for "Model View Projection Matrix"
     private final float[] mMVPMatrix = new float[16];
     private final float[] mProjectionMatrix = new float[16];
     private final float[] mViewMatrix = new float[16];
+
+    public MyGLRenderer(Context c) {
+        context = c;
+    }
 
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
@@ -34,6 +41,15 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         //GLES20.glDepthMask( true );
 
         float size = 3f;
+
+        mSprite = new Sprite(new float[] {
+                -1f, -3f,  1f,   // top left
+                -1f, -3f, -1f,   // bottom left
+                1f, -3f,  1f,    // top right
+                1f, -3f, -1f,    // bottom right
+        },context, R.drawable.test_texture);
+
+
         //Squares.add(new Square());
         // -Y
         Squares.add(new Square(
@@ -141,8 +157,9 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         Matrix.setRotateM(mRotationMatrix, 0, mAngleX, 0, -1.0f, 0);
         Matrix.multiplyMM(mMVPMatrix, 0, scratch, 0, mRotationMatrix, 0);
 
+        mSprite.draw(mMVPMatrix);
         for(Square s : Squares) {
-            s.draw(mMVPMatrix);
+            //s.draw(mMVPMatrix);
         }
         //mSquare.draw(mMVPMatrix);
         //mTriangle.draw(mMVPMatrix);
