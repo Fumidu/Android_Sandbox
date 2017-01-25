@@ -21,6 +21,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     //private Square mSquare;
     private Sprite mSprite;
     private Vector<Square> Squares = new Vector<Square>();
+    private Vector<Sprite> Sprites = new Vector<Sprite>();
     private Context context;
 
     // mMVPMatrix is an abbreviation for "Model View Projection Matrix"
@@ -42,12 +43,25 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
 
         float size = 3f;
 
-        mSprite = new Sprite(new float[] {
-                -1f, -3f,  1f,   // top left
-                -1f, -3f, -1f,   // bottom left
-                1f, -3f,  1f,    // top right
-                1f, -3f, -1f,    // bottom right
-        },context, R.drawable.test_texture);
+        //mSprite = new Sprite(1, 0, 0, 0, 0, 0, -3f ,context, R.drawable.test_texture);
+
+        // -Z
+        Sprites.add(new Sprite(3, 180, 0, 0, 0, 0, 3f ,context, R.drawable.back));
+
+        // +Z
+        Sprites.add(new Sprite(3, 0, 0, 180, 0, 0, 3f ,context, R.drawable.front));
+
+        // -Y
+        Sprites.add(new Sprite(3, 90, 0, 180, 0, 0, 3f ,context, R.drawable.bottom));
+
+        //+Y
+        Sprites.add(new Sprite(3, 270, 0, 180, 0, 0, 3f ,context, R.drawable.top));
+
+        //-X
+        Sprites.add(new Sprite(3, 180, 270, 0, 0, 0, 3f ,context, R.drawable.left));
+
+        //+X
+        Sprites.add(new Sprite(3, 180, 90, 0, 0, 0, 3f ,context, R.drawable.right));
 
 
         //Squares.add(new Square());
@@ -157,9 +171,13 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         Matrix.setRotateM(mRotationMatrix, 0, mAngleX, 0, -1.0f, 0);
         Matrix.multiplyMM(mMVPMatrix, 0, scratch, 0, mRotationMatrix, 0);
 
-        mSprite.draw(mMVPMatrix);
+        //mSprite.draw(mMVPMatrix);
         for(Square s : Squares) {
             //s.draw(mMVPMatrix);
+        }
+
+        for(Sprite s : Sprites) {
+            s.draw(mMVPMatrix);
         }
         //mSquare.draw(mMVPMatrix);
         //mTriangle.draw(mMVPMatrix);

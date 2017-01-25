@@ -50,7 +50,7 @@ public class MyGLSurfaceView extends GLSurfaceView {
                 }*/
 
                 mRenderer.setAngleY(mRenderer.getAngleY() + (-dy * TOUCH_SCALE_FACTOR));
-                mRenderer.setAngleX(mRenderer.getAngleX() + (-dx * TOUCH_SCALE_FACTOR));
+                mRenderer.setAngleX(mRenderer.getAngleX() + (dx * TOUCH_SCALE_FACTOR));
                 requestRender();
         }
 

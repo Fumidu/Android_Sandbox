@@ -5,6 +5,8 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.opengl.GLES20;
 import android.opengl.GLUtils;
+import android.opengl.Matrix;
+import android.util.Log;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -29,10 +31,8 @@ public class Sprite {
     private final String fragmentShaderCode =
             "precision mediump float;" +
             "uniform sampler2D u_Texture;" +
-            //"uniform vec4 vColor;" +
             "varying vec2 v_TexCoordinate;" +
             "void main() {" +
-            //"  gl_FragColor = vColor;" +
             "  gl_FragColor = texture2D(u_Texture, v_TexCoordinate);" +
             "}";
 
@@ -41,7 +41,6 @@ public class Sprite {
     // Use to access and set the view transformation
     private int mMVPMatrixHandle;
     private int mPositionHandle;
-    //private int mColorHandle;
 
     private FloatBuffer vertexBuffer;
     private ShortBuffer drawListBuffer;
@@ -51,8 +50,15 @@ public class Sprite {
     /** How many bytes per float. */
     private final int mBytesPerFloat = 4;
 
-    private float squareCoords[];
-    private short drawOrder[] = { 0, 1, 2, 3, 2, 1 }; // order to draw vertices
+    static final float squareCoords[] = {
+            -1f,  1f, 0f,  // top left
+            -1f, -1f, 0f,  // bottom left
+             1f,  1f, 0f,  // top right
+             1f, -1f, 0f,  // bottom right
+        };
+    static final short drawOrder[] = { 0, 1, 2, 3, 2, 1 }; // order to draw vertices
+
+    private float mPositionMatrix[];
 
     /** Store our model data in a float buffer. */
     private final FloatBuffer mCubeTextureCoordinates;
@@ -85,10 +91,9 @@ public class Sprite {
             0f, 0f,
     };
 
-    public Sprite(float[] coords, Context context, int texId)
+    public Sprite(float scale, float rotX, float rotY, float rotZ, float mvX, float mvY, float mvZ, Context context, int texId)
     {
-        squareCoords = coords;
-        //mColor = color;
+        InitPositionMatrix(scale, rotX, rotY, rotZ, mvX, mvY, mvZ);
 
         ByteBuffer bb = ByteBuffer.allocateDirect(squareCoords.length * 4);
         bb.order(ByteOrder.nativeOrder());
@@ -148,10 +153,13 @@ public class Sprite {
 
         GLES20.glEnableVertexAttribArray(mTextureCoordinateHandle);
 
+        float[] scratch = new float[16];
+        Matrix.multiplyMM(scratch, 0, mvpMatrix, 0, mPositionMatrix, 0);
+
         // get handle to shape's transformation matrix
         mMVPMatrixHandle = GLES20.glGetUniformLocation(mProgram, "uMVPMatrix");
         // Pass the projection and view transformation to the shader
-        GLES20.glUniformMatrix4fv(mMVPMatrixHandle, 1, false, mvpMatrix, 0);
+        GLES20.glUniformMatrix4fv(mMVPMatrixHandle, 1, false, scratch, 0);
 
         GLES20.glDrawElements(GLES20.GL_TRIANGLES, drawOrder.length, GLES20.GL_UNSIGNED_SHORT, drawListBuffer);
         GLES20.glDisableVertexAttribArray(mPositionHandle);
@@ -175,8 +183,8 @@ public class Sprite {
             GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureHandle[0]);
 
             // Set filtering
-            GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST);
-            GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_NEAREST);
+            GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
+            GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
 
             // Load the bitmap into the bound texture.
             GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0);
@@ -191,5 +199,47 @@ public class Sprite {
         }
 
         return textureHandle[0];
+    }
+
+    private void InitPositionMatrix(float scale, float rotX, float rotY, float rotZ, float mvX, float mvY, float mvZ){
+
+        float[] scaleM = new float [16];
+        float[] rotxM = new float [16];
+        float[] rotyM = new float [16];
+        float[] rotzM = new float [16];
+        float[] transM = new float [16];
+        float[] tmp1M = new float [16];
+        float[] tmp2M = new float [16];
+        mPositionMatrix = new float[16];
+
+        Matrix.setIdentityM(rotxM, 0);
+        Matrix.setIdentityM(scaleM, 0);
+        Matrix.setIdentityM(rotyM, 0);
+        Matrix.setIdentityM(rotzM, 0);
+        Matrix.setIdentityM(transM, 0);
+
+        Matrix.rotateM(rotxM, 0, rotX, 1f, 0f, 0f);
+        Matrix.rotateM(rotyM, 0, rotY, 0f, 1f, 0f);
+        Matrix.rotateM(rotzM, 0, rotZ, 0f, 0f, 1f);
+        Matrix.translateM(transM, 0, mvX, mvY, mvZ);
+        Matrix.scaleM(scaleM, 0, scale, scale, scale);
+
+        Matrix.multiplyMM(tmp2M, 0, rotxM, 0, rotyM, 0);
+        Matrix.multiplyMM(tmp1M, 0, tmp2M, 0, rotzM, 0);
+        Matrix.multiplyMM(tmp2M, 0, tmp1M, 0, transM, 0);
+        Matrix.multiplyMM(mPositionMatrix, 0, tmp2M, 0, scaleM, 0);
+        LogMatrix(mPositionMatrix, "rotxM * rotyM * rotzM * tranM * scaleM = mPositionMatrix");
+    }
+    
+    private void LogMatrix(float[] m, String name) {
+        Log.d("Sprite", name);
+        Log.d("Sprite", String.format("%1$.3f %2$.3f %3$.3f %4$.3f",
+                m[0], m[1], m[2], m[3]));
+        Log.d("Sprite", String.format("%1$.3f %2$.3f %3$.3f %4$.3f",
+                m[4], m[5], m[6], m[7]));
+        Log.d("Sprite", String.format("%1$.3f %2$.3f %3$.3f %4$.3f",
+                m[8], m[9], m[10], m[11]));
+        Log.d("Sprite", String.format("%1$.3f %2$.3f %3$.3f %4$.3f",
+                m[12], m[13], m[14], m[15]));
     }
 }
