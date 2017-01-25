@@ -5,6 +5,7 @@ import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 import android.os.SystemClock;
+import android.transition.Scene;
 
 import java.util.Vector;
 
@@ -22,6 +23,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     private Sprite mSprite;
     private Vector<Square> Squares = new Vector<Square>();
     private Vector<Sprite> Sprites = new Vector<Sprite>();
+    private CubeScene scene;
     private Context context;
 
     // mMVPMatrix is an abbreviation for "Model View Projection Matrix"
@@ -40,6 +42,8 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         //GLES20.glDepthRangef(0.0f, 1.0f);
         //GLES20.glDepthFunc(GLES20.GL_LEQUAL);
         //GLES20.glDepthMask( true );
+
+        scene = new CubeScene(context, R.drawable.test_pano);
 
         float size = 3f;
 
@@ -171,13 +175,14 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         Matrix.setRotateM(mRotationMatrix, 0, mAngleX, 0, -1.0f, 0);
         Matrix.multiplyMM(mMVPMatrix, 0, scratch, 0, mRotationMatrix, 0);
 
+        scene.draw(mMVPMatrix);
         //mSprite.draw(mMVPMatrix);
         for(Square s : Squares) {
             //s.draw(mMVPMatrix);
         }
 
         for(Sprite s : Sprites) {
-            s.draw(mMVPMatrix);
+            //s.draw(mMVPMatrix);
         }
         //mSquare.draw(mMVPMatrix);
         //mTriangle.draw(mMVPMatrix);

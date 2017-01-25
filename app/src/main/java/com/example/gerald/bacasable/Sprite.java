@@ -36,7 +36,7 @@ public class Sprite {
             "  gl_FragColor = texture2D(u_Texture, v_TexCoordinate);" +
             "}";
 
-    private final int mProgram;
+    private int mProgram;
 
     // Use to access and set the view transformation
     private int mMVPMatrixHandle;
@@ -61,7 +61,7 @@ public class Sprite {
     private float mPositionMatrix[];
 
     /** Store our model data in a float buffer. */
-    private final FloatBuffer mCubeTextureCoordinates;
+    private FloatBuffer mCubeTextureCoordinates;
 
     /** This will be used to pass in the texture. */
     private int mTextureUniformHandle;
@@ -91,10 +91,26 @@ public class Sprite {
             0f, 0f,
     };
 
-    public Sprite(float scale, float rotX, float rotY, float rotZ, float mvX, float mvY, float mvZ, Context context, int texId)
+    public Sprite(float scale, float rotX, float rotY, float rotZ, float mvX, float mvY, float mvZ,
+                  Context context, int texId)
     {
         InitPositionMatrix(scale, rotX, rotY, rotZ, mvX, mvY, mvZ);
 
+        final BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inScaled = false;   // No pre-scaling
+        Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), texId, options);
+
+        Init(bitmap);
+    }
+
+    public Sprite(float scale, float rotX, float rotY, float rotZ, float mvX, float mvY, float mvZ,
+                  Bitmap bitmap)
+    {
+        InitPositionMatrix(scale, rotX, rotY, rotZ, mvX, mvY, mvZ);
+        Init(bitmap);
+    }
+
+    private void Init(Bitmap bitmap) {
         ByteBuffer bb = ByteBuffer.allocateDirect(squareCoords.length * 4);
         bb.order(ByteOrder.nativeOrder());
 
@@ -116,7 +132,8 @@ public class Sprite {
         int vertexShader = MyGLRenderer.loadShader(GLES20.GL_VERTEX_SHADER, vertexShaderCode);
         int fragmentShader = MyGLRenderer.loadShader(GLES20.GL_FRAGMENT_SHADER, fragmentShaderCode);
 
-        mTextureDataHandle = loadTexture(context, texId);
+        //mTextureDataHandle = loadTexture(context, texId);
+        mTextureDataHandle = loadTexture(bitmap);
 
         mProgram = GLES20.glCreateProgram();
         GLES20.glAttachShader(mProgram, vertexShader);
@@ -165,7 +182,8 @@ public class Sprite {
         GLES20.glDisableVertexAttribArray(mPositionHandle);
     }
 
-    public static int loadTexture(final Context context, final int resourceId)
+    //public static int loadTexture(final Context context, final int resourceId)
+    public static int loadTexture(Bitmap bitmap)
     {
         final int[] textureHandle = new int[1];
 
@@ -173,11 +191,11 @@ public class Sprite {
 
         if (textureHandle[0] != 0)
         {
-            final BitmapFactory.Options options = new BitmapFactory.Options();
-            options.inScaled = false;   // No pre-scaling
+            //final BitmapFactory.Options options = new BitmapFactory.Options();
+            //options.inScaled = false;   // No pre-scaling
 
             // Read in the resource
-            final Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), resourceId, options);
+            //final Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), resourceId, options);
 
             // Bind to the texture in OpenGL
             GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureHandle[0]);
