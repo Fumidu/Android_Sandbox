@@ -18,11 +18,6 @@ import javax.microedition.khronos.opengles.GL10;
 
 public class MyGLRenderer implements GLSurfaceView.Renderer {
 
-    private Triangle mTriangle;
-    //private Square mSquare;
-    private Sprite mSprite;
-    private Vector<Square> Squares = new Vector<Square>();
-    private Vector<Sprite> Sprites = new Vector<Sprite>();
     private CubeScene scene;
     private Context context;
 
@@ -44,88 +39,6 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         //GLES20.glDepthMask( true );
 
         scene = new CubeScene(context, R.drawable.test_pano);
-
-        float size = 3f;
-
-        //mSprite = new Sprite(1, 0, 0, 0, 0, 0, -3f ,context, R.drawable.test_texture);
-
-        // -Z
-        Sprites.add(new Sprite(3, 180, 0, 0, 0, 0, 3f ,context, R.drawable.back));
-
-        // +Z
-        Sprites.add(new Sprite(3, 0, 0, 180, 0, 0, 3f ,context, R.drawable.front));
-
-        // -Y
-        Sprites.add(new Sprite(3, 90, 0, 180, 0, 0, 3f ,context, R.drawable.bottom));
-
-        //+Y
-        Sprites.add(new Sprite(3, 270, 0, 180, 0, 0, 3f ,context, R.drawable.top));
-
-        //-X
-        Sprites.add(new Sprite(3, 180, 270, 0, 0, 0, 3f ,context, R.drawable.left));
-
-        //+X
-        Sprites.add(new Sprite(3, 180, 90, 0, 0, 0, 3f ,context, R.drawable.right));
-
-
-        //Squares.add(new Square());
-        // -Y
-        Squares.add(new Square(
-                new float[] {
-                        -size, -size,  size,   // top left
-                        -size, -size, -size,   // bottom left
-                        size, -size, -size,    // bottom right
-                        size, -size,  size,    // top right
-                } ,
-                new float[] {1f, 0f, 0f, 1.0f})); // red
-        // +Y
-        Squares.add(new Square(
-                new float[] {
-                        -size, size,  size,   // top left
-                        -size, size, -size,   // bottom left
-                        size, size, -size,    // bottom right
-                        size, size,  size,    // top right
-                } ,
-                new float[] {0f, 1f, 0f, 1.0f})); // green
-        // -Z
-        Squares.add(new Square(
-                new float[] {
-                        -size, size, -size,  // top left
-                        -size, -size, -size,   // bottom left
-                        size, -size, -size,   // bottom right
-                        size, size, -size,   // top right
-                } ,
-                new float[] {0f, 0f, 1f, 1.0f})); // blue
-        // +Z
-        Squares.add(new Square(
-                new float[] {
-                        -size, size, size,  // top left
-                        -size, -size, size,   // bottom left
-                        size, -size, size,   // bottom right
-                        size, size, size,   // top right
-                } ,
-                new float[] {1f, 1f, 0f, 1.0f})); // yellow
-        // -X
-        Squares.add(new Square(
-                new float[] {
-                        -size, -size, size,   // top left
-                        -size, -size, -size,  // bottom left
-                        -size, size, -size,   // bottom right
-                        -size, size, size,    // top right
-                } ,
-                new float[] {1f, 0f, 1f, 1.0f})); // magenta
-        // +X
-        Squares.add(new Square(
-                new float[] {
-                        size, -size, size,   // top left
-                        size, -size, -size,  // bottom left
-                        size, size, -size,   // bottom right
-                        size, size, size,    // top right
-                } ,
-                new float[] {0f, 1f, 1f, 1.0f})); // cyan
-
-
-        mTriangle = new Triangle();
     }
 
     @Override
@@ -153,39 +66,18 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         GLES20.glClearDepthf(1.0f);
 
         // Set the camera position (View matrix)
-        //Matrix.setLookAtM(mViewMatrix, 0, 0, 0, -3, 0f, 0f, 0f, 0f, 1.0f, 0.0f);
         Matrix.setLookAtM(mViewMatrix, 0, 0, 0, 0, 0f, 0f, 1f, 0f, 1.0f, 0.0f);
 
         // Calculate the projection and view transformation
         Matrix.multiplyMM(mMVPMatrix, 0, mProjectionMatrix, 0, mViewMatrix, 0);
 
-        // Create a rotation transformation for the triangle
-        //long time = SystemClock.uptimeMillis() % 4000L;
-        //float angle = 0.090f * ((int) time);
+        // Create a rotation transformation
         Matrix.setRotateM(mRotationMatrix, 0, mAngleY, -1.0f, 0, 0);
-        //Matrix.setRotateM(mRotationMatrix, 0, angle, -1.0f, 0, 0);
-        //Matrix.setRotateM(mRotationMatrix, 0, angle, 0, 0, -1.0f);
-
-        // Combine the rotation matrix with the projection and camera view
-        // Note that the mMVPMatrix factor *must be first* in order
-        // for the matrix multiplication product to be correct.
         Matrix.multiplyMM(scratch, 0, mMVPMatrix, 0, mRotationMatrix, 0);
-
-
         Matrix.setRotateM(mRotationMatrix, 0, mAngleX, 0, -1.0f, 0);
         Matrix.multiplyMM(mMVPMatrix, 0, scratch, 0, mRotationMatrix, 0);
 
         scene.draw(mMVPMatrix);
-        //mSprite.draw(mMVPMatrix);
-        for(Square s : Squares) {
-            //s.draw(mMVPMatrix);
-        }
-
-        for(Sprite s : Sprites) {
-            //s.draw(mMVPMatrix);
-        }
-        //mSquare.draw(mMVPMatrix);
-        //mTriangle.draw(mMVPMatrix);
     }
 
     public static int loadShader(int type, String shaderCode){

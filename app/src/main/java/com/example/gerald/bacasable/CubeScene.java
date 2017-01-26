@@ -3,8 +3,12 @@ package com.example.gerald.bacasable;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.util.Pair;
 
+import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.List;
+import java.util.Vector;
 
 /**
  * Created by Gérald on 25/01/2017.
@@ -21,7 +25,8 @@ public class CubeScene {
         Bottom
     }
 
-    private Sprite front;
+    //private Sprite front;
+    private Vector<Sprite> Sprites = new Vector<Sprite>();
 
     private EnumMap<Face,Bitmap> faces = new EnumMap<Face, Bitmap>(Face.class);
     private Bitmap equirectangularBmp;
@@ -36,36 +41,58 @@ public class CubeScene {
         equirectangularBmp = BitmapFactory.decodeResource(context.getResources(), resourceId);
         LoadFaces();
 
-        front = new Sprite(3, 0, 0, 180, 0, 0, 3f , faces.get(Face.Front));
+        Sprites.add(new Sprite(3, 0, 0, 180, 0, 0, 3f, faces.get(Face.Front)));
+        Sprites.add(new Sprite(3, 180, 0, 0, 0, 0, 3f, faces.get(Face.Back)));
+        Sprites.add(new Sprite(3, 180, 270, 0, 0, 0, 3f, faces.get(Face.Right)));
+        Sprites.add(new Sprite(3, 180, 90, 0, 0, 0, 3f, faces.get(Face.Left)));
+        Sprites.add(new Sprite(3, 90, 0, 180, 0, 0, 3f, faces.get(Face.Bottom)));
+        Sprites.add(new Sprite(3, 270, 0, 180, 0, 0, 3f, faces.get(Face.Top)));
     }
 
     public void draw(float[] mvpMatrix) {
-        front.draw(mvpMatrix);
+        for (Sprite s : Sprites) {
+            s.draw(mvpMatrix);
+        }
     }
 
     private class Point { float x, y, z;}
 
+    public interface InitPoint { void init(float i, float j, Point p);}
+
     private void LoadFaces() {
-        Bitmap frontBmp = Bitmap.createBitmap(resolution, resolution, Bitmap.Config.ARGB_8888);
+
+        List<Pair<Face,InitPoint>> faceTreatment = new ArrayList<>();
+        faceTreatment.add(new Pair<>(Face.Front,  (i, j, p) -> {p.x = -i; p.y =  j; p.z =  1;}));
+        faceTreatment.add(new Pair<>(Face.Back,   (i, j, p) -> {p.x =  i; p.y =  j; p.z = -1;}));
+        faceTreatment.add(new Pair<>(Face.Top,    (i, j, p) -> {p.x = -i; p.y = -1; p.z =  j;}));
+        faceTreatment.add(new Pair<>(Face.Bottom, (i, j, p) -> {p.x = -i; p.y =  1; p.z = -j;}));
+        faceTreatment.add(new Pair<>(Face.Right,  (i, j, p) -> {p.x = -1; p.y =  j; p.z = -i;}));
+        faceTreatment.add(new Pair<>(Face.Left,   (i, j, p) -> {p.x =  1; p.y =  j; p.z =  i;}));
+
+        for(Pair<Face,InitPoint> pair : faceTreatment) {
+            Bitmap bmp = LoadFace(pair.second);
+            faces.put(pair.first, bmp);
+        }
+    }
+
+    private Bitmap LoadFace(InitPoint initPoint) {
+        Bitmap bmp = Bitmap.createBitmap(resolution, resolution, Bitmap.Config.ARGB_8888);
 
         Point p = new Point();
         for (int i = 0; i < resolution; i++)
-        for (int j = 0; j < resolution; j++) {
-            float ifloat = ChangeRange(0, resolution, -1, 1, i);
-            float jfloat = ChangeRange(0, resolution, -1, 1, j);
-            p.x = ifloat;
-            p.y = jfloat;
-            p.z = 1;
+            for (int j = 0; j < resolution; j++) {
+                float ifloat = Utils.ChangeRange(0, resolution, -1, 1, i);
+                float jfloat = Utils.ChangeRange(0, resolution, -1, 1, j);
 
-            double r = Math.sqrt(p.x * p.x + p.y * p.y + p.z * p.z);
-            float lat = (float)Math.asin(p.z / r);
-            float lon = (float)Math.atan2(p.y, p.x);
+                initPoint.init(ifloat, jfloat, p);
 
-            int pixel = GetPixel(lon, lat);
-            frontBmp.setPixel(i, j, pixel);
-        }
+                double r = Math.sqrt(p.x * p.x + p.y * p.y + p.z * p.z);
+                float lat = (float) Math.asin(p.y / r);
+                float lon = (float) Math.atan2(p.z, p.x);
 
-        faces.put(Face.Front, frontBmp);
+                bmp.setPixel(i, j, GetPixel(lon, lat));
+            }
+        return bmp;
     }
 
     private int GetPixel(float lon, float lat) {
@@ -88,18 +115,11 @@ public class CubeScene {
             lon -= TWO_PI;
         }
 
-        int x = (int)ChangeRange(0, TWO_PI, 0, equirectangularBmp.getWidth(), lon);
-        int y = (int)ChangeRange(-HALF_PI, HALF_PI, 0, equirectangularBmp.getHeight(), lat);
+        // TODO add linear interpolation
+        int x = (int)Utils.ChangeRange(0, TWO_PI, 0, equirectangularBmp.getWidth(), lon);
+        int y = (int)Utils.ChangeRange(-HALF_PI, HALF_PI, 0, equirectangularBmp.getHeight(), lat);
         x = Math.min(x, equirectangularBmp.getWidth() - 1);
         y = Math.min(y, equirectangularBmp.getHeight() - 1);
         return equirectangularBmp.getPixel(x, y);
     }
-
-    private float ChangeRange(float r1Start, float r1Stop, float r2Start, float r2Stop, float val)
-    {
-        float r1Range = r1Stop - r1Start;
-        float r2Range = r2Stop - r2Start;
-        return (val - r1Start) / r1Range * r2Range + r2Start;
-    }
-
 }
