@@ -1,5 +1,6 @@
 package com.example.gerald.bacasable;
 
+import android.content.pm.ActivityInfo;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Gravity;
@@ -15,14 +16,9 @@ public class TestGlActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         mGLSurfaceView = new MyGLSurfaceView(this);
         setContentView(mGLSurfaceView);
-
-        //Button b = new Button(this);
-        //b.setText("Anchor");
-        //this.addContentView(b,
-        //        new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
         LinearLayout ll = new LinearLayout(this);
         Button b = new Button(this);

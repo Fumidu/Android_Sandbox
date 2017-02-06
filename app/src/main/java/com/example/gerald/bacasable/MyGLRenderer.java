@@ -28,6 +28,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
 
     public MyGLRenderer(Context c) {
         context = c;
+        Matrix.setIdentityM(mOrientationMatrix, 0);
     }
 
     @Override
@@ -76,12 +77,15 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         Matrix.multiplyMM(mMVPMatrix, 0, mProjectionMatrix, 0, mViewMatrix, 0);
 
         // Create a rotation transformation
-        Matrix.setRotateM(mRotationMatrix, 0, mAngleY, -1.0f, 0, 0);
-        Matrix.multiplyMM(scratch, 0, mMVPMatrix, 0, mRotationMatrix, 0);
-        Matrix.setRotateM(mRotationMatrix, 0, mAngleX, 0, -1.0f, 0);
-        Matrix.multiplyMM(mMVPMatrix, 0, scratch, 0, mRotationMatrix, 0);
+        //Matrix.setRotateM(mRotationMatrix, 0, mAngleY, -1.0f, 0, 0);
+        //Matrix.multiplyMM(scratch, 0, mMVPMatrix, 0, mRotationMatrix, 0);
+        //Matrix.setRotateM(mRotationMatrix, 0, mAngleX, 0, -1.0f, 0);
+        //Matrix.multiplyMM(mMVPMatrix, 0, scratch, 0, mRotationMatrix, 0);
 
-        scene.draw(mMVPMatrix);
+        //scene.draw(mMVPMatrix);
+
+        Matrix.multiplyMM(scratch, 0, mMVPMatrix, 0, mOrientationMatrix, 0);
+        scene.draw(scratch);
     }
 
     public static int loadShader(int type, String shaderCode){
@@ -96,29 +100,13 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         return shader;
     }
 
-    public volatile float mAngleY;
-
-    public float getAngleY() {
-        return mAngleY;
-    }
-
-    public void setAngleY(float angle) {
-        mAngleY = angle;
-    }
-
-    public volatile float mAngleX;
-
-    public float getAngleX() {
-        return mAngleX;
-    }
-
-    public void setAngleX(float angle) {
-        mAngleX = angle;
-    }
-
     public volatile float mScale = 1;
 
     public void setScale(float scale) { mScale = scale; }
 
     private float ratio = 1;
+
+    public volatile float[] mOrientationMatrix = new float[16];
+
+    public void setOrientation(float[] matrix) { mOrientationMatrix = matrix; }
 }

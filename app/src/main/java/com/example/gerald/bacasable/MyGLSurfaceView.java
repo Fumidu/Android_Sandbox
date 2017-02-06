@@ -3,6 +3,8 @@ package com.example.gerald.bacasable;
 
 import android.content.Context;
 import android.opengl.GLSurfaceView;
+import android.opengl.Matrix;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 
@@ -16,12 +18,19 @@ public class MyGLSurfaceView extends GLSurfaceView {
     private ScaleGestureDetector mScaleDetector;
     private OrientationListener mOrientationListener;
     private float mScaleFactor = 1.f;
-    private float [] mDeviceOrientation;
+    private float [] mDeviceOrientation = new float[16];
+    private float [] mInverted = new float[16];
+    private float [] mRotationMatrixX = new float[16];
+    private float [] mRotationMatrixY = new float[16];
+    private float [] mRotationInit = new float[16];
 
     private final float MOVE_FACTOR = 0.3f;
     private final float SCALE_FACTOR = 2f;
+    private final float RAD2DEG = 180.0f / (float)Math.PI;
     private float mPreviousX;
     private float mPreviousY;
+    private float angleX = 0.0f;
+    private float angleY = 0.0f;
     private boolean isAnchored = false;
 
     public MyGLSurfaceView(Context context) {
@@ -32,8 +41,24 @@ public class MyGLSurfaceView extends GLSurfaceView {
         mOrientationListener = new OrientationListener(context);
         mOrientationListener.setOnNewOrientationListener(new OrientationListener.NewsOrientationListener() {
             @Override
-            public void onNewOrientation(float[] orientationMatrix) {
-                mDeviceOrientation = orientationMatrix;
+            public void onNewOrientation(float[] orientation) {
+                if (!isAnchored) return;
+
+                Log.d("onNewOrientation", String.format("Azimuth : %1$.3f Pitch : %2$.3f Roll : %3$.3f",
+                        orientation[0], orientation[1], orientation[2]));
+
+                //System.arraycopy(orientationMatrix, 0, mDeviceOrientation, 0, mDeviceOrientation.length);
+                //Matrix.invertM(mInverted, 0, mDeviceOrientation, 0);
+                //Matrix.rotateM(mDeviceOrientation, 0, -90, 1, 0, 0);
+                //Matrix.rotateM(mInverted, 0, -90, 1, 0, 0);
+                Matrix.setIdentityM(mDeviceOrientation, 0);
+                Matrix.rotateM(mDeviceOrientation, 0, -90, 1, 0, 0);
+                Matrix.rotateM(mDeviceOrientation, 0, orientation[2] * RAD2DEG, 0, 0, -1);
+                Matrix.rotateM(mDeviceOrientation, 0, orientation[1] * RAD2DEG, -1, 0, 0);
+                Matrix.rotateM(mDeviceOrientation, 0, orientation[0] * RAD2DEG, 0, 1, 0);
+
+                mRenderer.setOrientation(mDeviceOrientation);
+                requestRender();
             }
         });
         //mOrientationListener.setOnNewOrientationListener(
@@ -51,6 +76,8 @@ public class MyGLSurfaceView extends GLSurfaceView {
 
     @Override
     public boolean onTouchEvent(MotionEvent e) {
+        mScaleDetector.onTouchEvent(e);
+
         if (isAnchored) return true;
 
         float x = e.getX();
@@ -61,12 +88,15 @@ public class MyGLSurfaceView extends GLSurfaceView {
                 float dx = x - mPreviousX;
                 float dy = y - mPreviousY;
 
-                float angleY = mRenderer.getAngleY() + (-dy * MOVE_FACTOR);
+                angleY = angleY + (-dy * MOVE_FACTOR);
                 angleY = Utils.Clamp(-90, 90, angleY);
-                mRenderer.setAngleY(angleY);
+                angleX = angleX + (dx * MOVE_FACTOR);
 
-                float angleX = mRenderer.getAngleX() + (dx * MOVE_FACTOR);
-                mRenderer.setAngleX(angleX);
+                Matrix.setRotateM(mRotationMatrixY, 0, angleY, -1.0f, 0, 0);
+                Matrix.setRotateM(mRotationMatrixX, 0, angleX, 0, -1.0f, 0);
+                Matrix.multiplyMM(mDeviceOrientation, 0, mRotationMatrixY, 0, mRotationMatrixX, 0);
+                mRenderer.setOrientation(mDeviceOrientation);
+
                 requestRender();
 
                 break;
@@ -74,8 +104,6 @@ public class MyGLSurfaceView extends GLSurfaceView {
 
         mPreviousX = x;
         mPreviousY = y;
-
-        mScaleDetector.onTouchEvent(e);
 
         return true;
     }
@@ -100,4 +128,17 @@ public class MyGLSurfaceView extends GLSurfaceView {
     public void SetAnchored(boolean newVal) { isAnchored = newVal;}
 
     public void SwitchAnchored() { isAnchored = !isAnchored;}
+
+    @Override
+    public void onResume(){
+        super.onResume();
+        mOrientationListener.resume();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        mOrientationListener.pause();
+    }
+
 }
