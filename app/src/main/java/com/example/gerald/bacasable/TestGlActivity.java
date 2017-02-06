@@ -2,6 +2,11 @@ package com.example.gerald.bacasable;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.Gravity;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.LinearLayout;
 
 public class TestGlActivity extends AppCompatActivity {
 
@@ -13,6 +18,29 @@ public class TestGlActivity extends AppCompatActivity {
 
         mGLSurfaceView = new MyGLSurfaceView(this);
         setContentView(mGLSurfaceView);
+
+        //Button b = new Button(this);
+        //b.setText("Anchor");
+        //this.addContentView(b,
+        //        new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+
+        LinearLayout ll = new LinearLayout(this);
+        Button b = new Button(this);
+        b.setText("Anchor");
+        b.setOnClickListener(getOnClickDoSomething(b));
+        ll.addView(b);
+        ll.setGravity(Gravity.BOTTOM | Gravity.RIGHT);
+        this.addContentView(ll,
+                new ViewGroup.LayoutParams(ViewGroup.LayoutParams.FILL_PARENT, ViewGroup.LayoutParams.FILL_PARENT));
+    }
+
+    private View.OnClickListener getOnClickDoSomething(final Button button) {
+        return new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mGLSurfaceView.SwitchAnchored();
+            }
+        };
     }
 
     @Override

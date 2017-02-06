@@ -40,13 +40,14 @@ public class CubeScene {
     public CubeScene(final Context context, final int resourceId) {
         equirectangularBmp = BitmapFactory.decodeResource(context.getResources(), resourceId);
         LoadFaces();
-
-        Sprites.add(new Sprite(3, 0, 0, 180, 0, 0, 3f, faces.get(Face.Front)));
-        Sprites.add(new Sprite(3, 180, 0, 0, 0, 0, 3f, faces.get(Face.Back)));
-        Sprites.add(new Sprite(3, 180, 270, 0, 0, 0, 3f, faces.get(Face.Right)));
-        Sprites.add(new Sprite(3, 180, 90, 0, 0, 0, 3f, faces.get(Face.Left)));
-        Sprites.add(new Sprite(3, 90, 0, 180, 0, 0, 3f, faces.get(Face.Bottom)));
-        Sprites.add(new Sprite(3, 270, 0, 180, 0, 0, 3f, faces.get(Face.Top)));
+        float cubeSize = 6f;
+        float factor = ((float)resolution + 1.0f) / (float)resolution;
+        Sprites.add(new Sprite(cubeSize * factor, 0, 0, 180, 0, 0, cubeSize, faces.get(Face.Front)));
+        Sprites.add(new Sprite(cubeSize * factor, 180, 0, 0, 0, 0, cubeSize, faces.get(Face.Back)));
+        Sprites.add(new Sprite(cubeSize * factor, 180, 270, 0, 0, 0, cubeSize, faces.get(Face.Right)));
+        Sprites.add(new Sprite(cubeSize * factor, 180, 90, 0, 0, 0, cubeSize, faces.get(Face.Left)));
+        Sprites.add(new Sprite(cubeSize * factor, 90, 0, 180, 0, 0, cubeSize, faces.get(Face.Bottom)));
+        Sprites.add(new Sprite(cubeSize * factor, 270, 0, 180, 0, 0, cubeSize, faces.get(Face.Top)));
     }
 
     public void draw(float[] mvpMatrix) {

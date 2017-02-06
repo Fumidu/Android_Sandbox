@@ -15,7 +15,7 @@ jstring
 Java_com_example_gerald_bacasable_MainActivity_string2FromJNI(
         JNIEnv* env,
         jobject /* this */) {
-    std::string hello2 = "Bien e boujour brave compagnie !";
+    std::string hello2 = "Bien le boujour brave compagnie !";
     return env->NewStringUTF(hello2.c_str());
 }
 

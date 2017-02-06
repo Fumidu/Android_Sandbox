@@ -45,22 +45,26 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     public void onSurfaceChanged(GL10 gl, int width, int height) {
         GLES20.glViewport(0, 0, width, height);
 
-        float ratio = (float) width / height;
+        ratio = (float) width / height;
+    }
 
+    private void setProjectionMatrix(float ratio) {
         // this projection matrix is applied to object coordinates
         // in the onDrawFrame() method
         float near = 2f;
-        float far = 7;
+        float far = 20f;
         if (ratio > 1) {
-            Matrix.frustumM(mProjectionMatrix, 0, -ratio, ratio, -1, 1, near, far);
+            Matrix.frustumM(mProjectionMatrix, 0, -ratio * mScale, ratio * mScale, -1 * mScale, 1 * mScale, near, far);
         } else {
-            Matrix.frustumM(mProjectionMatrix, 0, -1f, 1f , -1f / ratio, 1f / ratio, near, far);
+            Matrix.frustumM(mProjectionMatrix, 0, -1f * mScale, 1f * mScale , -1f / ratio * mScale, 1f / ratio * mScale, near, far);
         }
     }
 
     private float[] mRotationMatrix = new float[16];
     @Override
     public void onDrawFrame(GL10 gl) {
+        setProjectionMatrix(ratio);
+
         float[] scratch = new float[16];
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
         GLES20.glClearDepthf(1.0f);
@@ -111,4 +115,10 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     public void setAngleX(float angle) {
         mAngleX = angle;
     }
+
+    public volatile float mScale = 1;
+
+    public void setScale(float scale) { mScale = scale; }
+
+    private float ratio = 1;
 }
