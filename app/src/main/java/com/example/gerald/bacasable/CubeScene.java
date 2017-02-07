@@ -3,10 +3,16 @@ package com.example.gerald.bacasable;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.util.Log;
+import android.util.LruCache;
 import android.util.Pair;
 
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
 
@@ -25,13 +31,13 @@ public class CubeScene {
         Bottom
     }
 
-    //private Sprite front;
-    private Vector<Sprite> Sprites = new Vector<Sprite>();
+    private final Bitmap.Config bmpConfig = Bitmap.Config.ARGB_8888;
+    private static final int resolution = 512;
+    private static HashMap<String, byte[]> mBmpByteCache = new HashMap<>();
 
-    private EnumMap<Face,Bitmap> faces = new EnumMap<Face, Bitmap>(Face.class);
+    private Vector<Sprite> Sprites = new Vector<>();
+    private EnumMap<Face,Bitmap> faces = new EnumMap<>(Face.class);
     private Bitmap equirectangularBmp;
-
-    private int resolution = 512;
 
     static final float PI = (float)(Math.PI);
     static final float HALF_PI = (float)(Math.PI * 0.5);
@@ -39,7 +45,7 @@ public class CubeScene {
 
     public CubeScene(final Context context, final int resourceId) {
         equirectangularBmp = BitmapFactory.decodeResource(context.getResources(), resourceId);
-        LoadFaces();
+        LoadFaces(resourceId);
         float cubeSize = 6f;
         float factor = ((float)resolution + 1.0f) / (float)resolution;
         Sprites.add(new Sprite(cubeSize * factor, 0, 0, 180, 0, 0, cubeSize, faces.get(Face.Front)));
@@ -60,7 +66,7 @@ public class CubeScene {
 
     public interface InitPoint { void init(float i, float j, Point p);}
 
-    private void LoadFaces() {
+    private void LoadFaces(final int resourceId) {
 
         List<Pair<Face,InitPoint>> faceTreatment = new ArrayList<>();
         faceTreatment.add(new Pair<>(Face.Front,  (i, j, p) -> {p.x = -i; p.y =  j; p.z =  1;}));
@@ -70,14 +76,47 @@ public class CubeScene {
         faceTreatment.add(new Pair<>(Face.Right,  (i, j, p) -> {p.x = -1; p.y =  j; p.z = -i;}));
         faceTreatment.add(new Pair<>(Face.Left,   (i, j, p) -> {p.x =  1; p.y =  j; p.z =  i;}));
 
+        Bitmap bmp;
         for(Pair<Face,InitPoint> pair : faceTreatment) {
-            Bitmap bmp = LoadFace(pair.second);
+            String bmpId = CreateBitmapId(resourceId, pair.first);
+            if (mBmpByteCache.containsKey(bmpId))
+            {
+                bmp = ByteToBitmap(mBmpByteCache.get(bmpId));
+            }
+            else
+            {
+                bmp = LoadFace(pair.second);
+                mBmpByteCache.put(bmpId, BitmapToByte(bmp));
+            }
             faces.put(pair.first, bmp);
         }
     }
 
+    private byte[] BitmapToByte(Bitmap bitmap)
+    {
+        int size = bitmap.getRowBytes() * bitmap.getHeight();
+        ByteBuffer byteBuffer = ByteBuffer.allocate(size);
+        bitmap.copyPixelsToBuffer(byteBuffer);
+        return byteBuffer.array();
+    }
+
+    private Bitmap ByteToBitmap(byte[] byteArray)
+    {
+        Bitmap bitmap_tmp = Bitmap.createBitmap(resolution, resolution, bmpConfig);
+        ByteBuffer buffer = ByteBuffer.wrap(byteArray);
+        bitmap_tmp.copyPixelsFromBuffer(buffer);
+        return bitmap_tmp;
+    }
+
+    private String CreateBitmapId(int resourceId, Face face)
+    {
+        String res = "Id" + resourceId + face;
+        Log.d("CubeScene", res);
+        return res;
+    }
+
     private Bitmap LoadFace(InitPoint initPoint) {
-        Bitmap bmp = Bitmap.createBitmap(resolution, resolution, Bitmap.Config.ARGB_8888);
+        Bitmap bmp = Bitmap.createBitmap(resolution, resolution, bmpConfig);
 
         Point p = new Point();
         for (int i = 0; i < resolution; i++)

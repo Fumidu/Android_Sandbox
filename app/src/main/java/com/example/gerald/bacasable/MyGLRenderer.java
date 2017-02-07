@@ -39,7 +39,9 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         //GLES20.glDepthFunc(GLES20.GL_LEQUAL);
         //GLES20.glDepthMask( true );
 
-        scene = new CubeScene(context, R.drawable.test_pano);
+        //scene = new CubeScene(context, R.drawable.test_pano);
+        //scene = new CubeScene(context, R.drawable.test_pano_hd);
+        scene = new CubeScene(context, R.drawable.test_pano_moyen);
     }
 
     @Override

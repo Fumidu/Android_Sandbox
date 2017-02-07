@@ -44,8 +44,8 @@ public class MyGLSurfaceView extends GLSurfaceView {
             public void onNewOrientation(float[] orientation) {
                 if (!isAnchored) return;
 
-                Log.d("onNewOrientation", String.format("Azimuth : %1$.3f Pitch : %2$.3f Roll : %3$.3f",
-                        orientation[0], orientation[1], orientation[2]));
+                Log.d("onNewOrientation", String.format("Azimuth : %1$.1f Pitch : %2$.1f Roll : %3$.1f",
+                        orientation[0] * RAD2DEG, orientation[1] * RAD2DEG, orientation[2] * RAD2DEG));
 
                 //System.arraycopy(orientationMatrix, 0, mDeviceOrientation, 0, mDeviceOrientation.length);
                 //Matrix.invertM(mInverted, 0, mDeviceOrientation, 0);

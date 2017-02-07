@@ -19,7 +19,9 @@ public class OrientationListener implements SensorEventListener {
     private Sensor mSensorAcc;
     private Sensor mSensorMag;
     private float[] mAcceleration;
+    private float[] mAccelerationSmooth;
     private float[] mMagneticField;
+    private float[] mMagneticFieldSmooth;
     private float[] mOrientation;
     private float[] mOrientationSmooth;
     private float[] mRotationMatrix;
@@ -33,7 +35,9 @@ public class OrientationListener implements SensorEventListener {
         mSensorMag = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
 
         mAcceleration = new float[3];
+        mAccelerationSmooth = new float[3];
         mMagneticField = new float[3];
+        mMagneticFieldSmooth = new float[3];
         mOrientation = new float[3];
         mOrientationSmooth = new float[3];
         mRotationMatrix = new float[16];
@@ -54,16 +58,22 @@ public class OrientationListener implements SensorEventListener {
     public void onSensorChanged(SensorEvent event) {
         int type = event.sensor.getType();
         if (type == Sensor.TYPE_ACCELEROMETER) {
-            mAcceleration[0] = event.values[0];
-            mAcceleration[1] = event.values[1];
-            mAcceleration[2] = event.values[2];
+            for(int i = 0; i < 3; i++)
+            {
+                mAcceleration[i] = event.values[i];
+                mAccelerationSmooth[i] = smooth(mAccelerationSmooth[i], mAcceleration[i], SMOOTH_FACTOR);
+            }
+
         } else if (type == Sensor.TYPE_MAGNETIC_FIELD) {
-            mMagneticField[0] = event.values[0];
-            mMagneticField[1] = event.values[1];
-            mMagneticField[2] = event.values[2];
+            for(int i = 0; i < 3; i++)
+            {
+                mMagneticField[i] = event.values[i];
+                mMagneticFieldSmooth[i] = smooth(mMagneticFieldSmooth[i], mMagneticField[i], 0.5f);
+            }
         }
 
-        if(mSensorManager.getRotationMatrix(mRotationMatrix, null, mAcceleration, mMagneticField)) {
+        //if(mSensorManager.getRotationMatrix(mRotationMatrix, null, mAcceleration, mMagneticField)) {
+        if(mSensorManager.getRotationMatrix(mRotationMatrix, null, mAccelerationSmooth, mMagneticFieldSmooth)) {
 
             mSensorManager.getOrientation(mRotationMatrix, mOrientation);
 
@@ -71,14 +81,14 @@ public class OrientationListener implements SensorEventListener {
             //mOrientationSmooth[1] = smooth(mOrientationSmooth[1], mOrientation[1], SMOOTH_FACTOR);
             //mOrientationSmooth[2] = smooth(mOrientationSmooth[2], mOrientation[2], SMOOTH_FACTOR);
 
-            mOrientationSmooth[0] = circularSmooth(mOrientationSmooth[0], mOrientation[0], SMOOTH_FACTOR, (float)Math.PI);
-            mOrientationSmooth[1] = circularSmooth(mOrientationSmooth[1], mOrientation[1], SMOOTH_FACTOR, (float)Math.PI);
-            mOrientationSmooth[2] = circularSmooth(mOrientationSmooth[2], mOrientation[2], SMOOTH_FACTOR, (float)Math.PI * 0.5f);
+            //mOrientationSmooth[0] = circularSmooth(mOrientationSmooth[0], mOrientation[0], SMOOTH_FACTOR, (float)Math.PI);
+            //mOrientationSmooth[1] = circularSmooth(mOrientationSmooth[1], mOrientation[1], SMOOTH_FACTOR, (float)Math.PI);
+            //mOrientationSmooth[2] = circularSmooth(mOrientationSmooth[2], mOrientation[2], SMOOTH_FACTOR, (float)Math.PI * 0.5f);
 
             for (NewsOrientationListener l : listeners)
             {
-                //l.onNewOrientation(mOrientation);
-                l.onNewOrientation(mOrientationSmooth);
+                l.onNewOrientation(mOrientation);
+                //l.onNewOrientation(mOrientationSmooth);
             }
         }
     }
