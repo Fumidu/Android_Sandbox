@@ -182,7 +182,6 @@ public class Sprite {
         GLES20.glDisableVertexAttribArray(mPositionHandle);
     }
 
-    //public static int loadTexture(final Context context, final int resourceId)
     public static int loadTexture(Bitmap bitmap)
     {
         final int[] textureHandle = new int[1];
@@ -246,7 +245,7 @@ public class Sprite {
         Matrix.multiplyMM(tmp1M, 0, tmp2M, 0, rotzM, 0);
         Matrix.multiplyMM(tmp2M, 0, tmp1M, 0, transM, 0);
         Matrix.multiplyMM(mPositionMatrix, 0, tmp2M, 0, scaleM, 0);
-        LogMatrix(mPositionMatrix, "rotxM * rotyM * rotzM * tranM * scaleM = mPositionMatrix");
+        //LogMatrix(mPositionMatrix, "rotxM * rotyM * rotzM * tranM * scaleM = mPositionMatrix");
     }
     
     private void LogMatrix(float[] m, String name) {

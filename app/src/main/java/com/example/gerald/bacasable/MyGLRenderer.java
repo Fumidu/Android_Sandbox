@@ -1,11 +1,14 @@
 package com.example.gerald.bacasable;
 
+import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 import android.os.SystemClock;
 import android.transition.Scene;
+import android.util.Log;
 
 import java.util.Vector;
 
@@ -19,17 +22,19 @@ import javax.microedition.khronos.opengles.GL10;
 public class MyGLRenderer implements GLSurfaceView.Renderer {
 
     private CubeScene scene;
-    private Context context;
+    private Activity context;
 
     // mMVPMatrix is an abbreviation for "Model View Projection Matrix"
     private final float[] mMVPMatrix = new float[16];
     private final float[] mProjectionMatrix = new float[16];
     private final float[] mViewMatrix = new float[16];
 
-    public MyGLRenderer(Context c) {
+    public MyGLRenderer(Activity c) {
         context = c;
         Matrix.setIdentityM(mOrientationMatrix, 0);
     }
+
+    static ProgressDialog progress;
 
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
@@ -39,9 +44,31 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         //GLES20.glDepthFunc(GLES20.GL_LEQUAL);
         //GLES20.glDepthMask( true );
 
+        context.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                progress = new ProgressDialog(context);
+                progress.setTitle("Loading");
+                progress.setMessage("Building scene...");
+                progress.setCancelable(false); // disable dismiss by tapping outside of the dialog
+                progress.show();
+            }
+        });
+
+        Log.d("GLSURFACEVIEW", "loading show");
+
         //scene = new CubeScene(context, R.drawable.test_pano);
         //scene = new CubeScene(context, R.drawable.test_pano_hd);
         scene = new CubeScene(context, R.drawable.test_pano_moyen);
+
+        context.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                progress.dismiss();
+            }
+        });
+
+        Log.d("GLSURFACEVIEW", "loading dismiss");
     }
 
     @Override
@@ -63,7 +90,6 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         }
     }
 
-    private float[] mRotationMatrix = new float[16];
     @Override
     public void onDrawFrame(GL10 gl) {
         setProjectionMatrix(ratio);
@@ -77,14 +103,6 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
 
         // Calculate the projection and view transformation
         Matrix.multiplyMM(mMVPMatrix, 0, mProjectionMatrix, 0, mViewMatrix, 0);
-
-        // Create a rotation transformation
-        //Matrix.setRotateM(mRotationMatrix, 0, mAngleY, -1.0f, 0, 0);
-        //Matrix.multiplyMM(scratch, 0, mMVPMatrix, 0, mRotationMatrix, 0);
-        //Matrix.setRotateM(mRotationMatrix, 0, mAngleX, 0, -1.0f, 0);
-        //Matrix.multiplyMM(mMVPMatrix, 0, scratch, 0, mRotationMatrix, 0);
-
-        //scene.draw(mMVPMatrix);
 
         Matrix.multiplyMM(scratch, 0, mMVPMatrix, 0, mOrientationMatrix, 0);
         scene.draw(scratch);

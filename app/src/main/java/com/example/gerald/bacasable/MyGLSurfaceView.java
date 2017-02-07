@@ -1,7 +1,7 @@
 package com.example.gerald.bacasable;
 
 
-import android.content.Context;
+import android.app.Activity;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 import android.util.Log;
@@ -19,10 +19,8 @@ public class MyGLSurfaceView extends GLSurfaceView {
     private OrientationListener mOrientationListener;
     private float mScaleFactor = 1.f;
     private float [] mDeviceOrientation = new float[16];
-    private float [] mInverted = new float[16];
     private float [] mRotationMatrixX = new float[16];
     private float [] mRotationMatrixY = new float[16];
-    private float [] mRotationInit = new float[16];
 
     private final float MOVE_FACTOR = 0.3f;
     private final float SCALE_FACTOR = 2f;
@@ -32,10 +30,11 @@ public class MyGLSurfaceView extends GLSurfaceView {
     private float angleX = 0.0f;
     private float angleY = 0.0f;
     private boolean isAnchored = false;
+    private Activity mActivity;
 
-    public MyGLSurfaceView(Context context) {
+    public MyGLSurfaceView(Activity context) {
         super(context);
-
+        mActivity = context;
         mScaleDetector = new ScaleGestureDetector(context, new ScaleListener());
 
         mOrientationListener = new OrientationListener(context);
@@ -46,11 +45,6 @@ public class MyGLSurfaceView extends GLSurfaceView {
 
                 Log.d("onNewOrientation", String.format("Azimuth : %1$.1f Pitch : %2$.1f Roll : %3$.1f",
                         orientation[0] * RAD2DEG, orientation[1] * RAD2DEG, orientation[2] * RAD2DEG));
-
-                //System.arraycopy(orientationMatrix, 0, mDeviceOrientation, 0, mDeviceOrientation.length);
-                //Matrix.invertM(mInverted, 0, mDeviceOrientation, 0);
-                //Matrix.rotateM(mDeviceOrientation, 0, -90, 1, 0, 0);
-                //Matrix.rotateM(mInverted, 0, -90, 1, 0, 0);
                 Matrix.setIdentityM(mDeviceOrientation, 0);
                 Matrix.rotateM(mDeviceOrientation, 0, -90, 1, 0, 0);
                 Matrix.rotateM(mDeviceOrientation, 0, orientation[2] * RAD2DEG, 0, 0, -1);
@@ -61,13 +55,11 @@ public class MyGLSurfaceView extends GLSurfaceView {
                 requestRender();
             }
         });
-        //mOrientationListener.setOnNewOrientationListener(
-        //        matrix -> mDeviceOrientation = matrix);
 
         setEGLContextClientVersion(2);
         setEGLConfigChooser(8, 8, 8, 8, 16, 0);
 
-        mRenderer = new MyGLRenderer(this.getContext());
+        mRenderer = new MyGLRenderer(mActivity);
 
         setRenderer(mRenderer);
 
@@ -122,10 +114,6 @@ public class MyGLSurfaceView extends GLSurfaceView {
             return true;
         }
     }
-
-    public boolean IsAnchored() { return isAnchored;}
-
-    public void SetAnchored(boolean newVal) { isAnchored = newVal;}
 
     public void SwitchAnchored() { isAnchored = !isAnchored;}
 
